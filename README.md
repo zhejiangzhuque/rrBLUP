@@ -149,5 +149,5 @@ mixed_solve(y, Z = None, K = None, X = None, method = "REML",
 
 ## License
 
-Our code is released under Apache License (see LICENSE file for details).
+Our code is released under [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0). 
 
