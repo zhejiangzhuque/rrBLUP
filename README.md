@@ -29,11 +29,11 @@ python -m ipykernel install --user --name rrblup --display-name='rrblup'
 
 ## Data
 
-We use the genomic dataset with protein as the trait from [SoyNAM](www.soybase.org), found in `data` folder. The default coding format in SoyNAM is : **-1** for the missing value, **0** for 0/0 genotype, 1 for 0/1 genotype and **2** for 1/1 genotype. However, rrBLUP R package requires input genotype matrix coded as **-1**,**0**,**1** for 0/0, 0/1, 1/1 genotype respectively. Therefore, we convert the data coding format in `data/data_convertion.ipynb`.
+We use the genomic dataset with protein as the trait from SoyNAM ([soybase.org/SoyNAM/index.php](https://soybase.org/SoyNAM/index.php)), found in `data` folder. The default coding format in SoyNAM is : **-1** for the missing value, **0** for 0/0 genotype, **1** for 0/1 genotype and **2** for 1/1 genotype. However, rrBLUP R package requires input genotype matrix coded as **-1**,**0**,**1** for 0/0, 0/1, 1/1 genotype respectively. Therefore, we convert the data coding format in `data/data_convertion.ipynb`.
 
 ## Usage
 
-There are two functions `A_mat` and `mixed_solve` in `rrBLUP.py`, which is same as the functions `A.mat` and `mixed.solve` in R package rrBLUP. The notebook includes how to use rrBLUP in Python within `demo.ipynb`. Meanwhile we also provide a R script about how to use these functions in R within `demo.R`.  Detail usages about these two functions are shown below.
+There are two functions `A_mat` and `mixed_solve` in `rrBLUP.py`, which are same as the functions `A.mat` and `mixed.solve` in R package rrBLUP. The notebook includes how to use rrBLUP in Python within `demo.ipynb`. Meanwhile we also provide a R script about how to use these functions in R within `demo.R`.  Detail usages about these two functions are shown below.
 
 ```python
 A_mat(X, min_MAF = None, max_missing = None, impute_method = "mean", tol = 0.02,
