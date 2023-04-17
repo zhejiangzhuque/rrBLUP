@@ -1,5 +1,5 @@
 ################################################################
-#  Update Date: 2022-12-23                         #
+#  Update Date: 2023-04-14                         #
 ################################################################
 
 import random
@@ -367,9 +367,9 @@ def mixed_solve(y, Z = None, K = None, X = None, method = "REML",
                 return
     if spectral_method == "cholesky":
         if K is None:
-            ZBT = Z
+            ZBt = Z
         else:
-            ZBT = tcrossprod(Z,B)
+            ZBt = tcrossprod(Z,B)
         u, svd_ZBt_d, v = np.linalg.svd(Z, full_matrices = 0)
         phi = np.append(svd_ZBt_d * svd_ZBt_d, np.zeros(n - m))
         SZBt = np.dot(S, ZBt)
@@ -378,7 +378,7 @@ def mixed_solve(y, Z = None, K = None, X = None, method = "REML",
         except:
             svd_SZBt_u, svd_SZBt_d, v = np.linalg.svd(SZBt + 1e-10, full_matrices = 0)
         QR = robjects.r['qr'](np.hstack((X, svd_SZBt_u)))
-        q = robjects.r['qr.Q'](QR, complete=TRUE)
+        q = robjects.r['qr.Q'](QR, complete=True)
         r = robjects.r['qr.R'](QR)
         Q = q[:, p:n]
         R = r[p:m, p:m]
