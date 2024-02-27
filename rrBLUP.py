@@ -376,12 +376,11 @@ def mixed_solve(y, Z = None, K = None, X = None, method = "REML",
         try:
             svd_SZBt_u, svd_SZBt_d, v = np.linalg.svd(SZBt, full_matrices = 0)
         except:
-            svd_SZBt_u, svd_SZBt_d, v = np.linalg.svd(SZBt + 1e-10, full_matrices = 0)
-        QR = robjects.r['qr'](np.hstack((X, svd_SZBt_u)))
-        q = robjects.r['qr.Q'](QR, complete=True)
-        r = robjects.r['qr.R'](QR)
-        Q = q[:, p:n]
-        R = r[p:m, p:m]
+            svd_SZBt_u, svd_SZBt_d, v = np.linalg.svd(SZBt + 1e-10, full_matrices=0)
+        matrix_to_decompose = np.hstack((X, svd_SZBt_u))
+        Q_numpy, R_numpy = np.linalg.qr(matrix_to_decompose, mode='complete')
+        Q = Q_numpy[:, p:n]
+        R = R_numpy[p:m, p:m]
         try:
             ans = np.linalg.solve(np.transpose(R * R), svd_SZBt_d * svd_SZBt_d)
             theta = np.append(ans, np.zeros(n - p - m))
@@ -393,72 +392,44 @@ def mixed_solve(y, Z = None, K = None, X = None, method = "REML",
             Hb =  tcrossprod(Z, Z) + offset * np.eye(n)
         else:
             Hb = tcrossprod(np.dot(Z, K), Z) + offset * np.eye(n)
-        tmp = robjects.r['eigen'](Hb)
-        Hb_system_values = list(tmp)[0]
-        Hb_system_vectors = list(tmp)[1]
+
+        eigenvalues, eigenvectors = np.linalg.eig(Hb)
+
+        # Sort the eigenvalues in descending order, and sort the eigenvectors to match
+        idx = eigenvalues.argsort()[::-1]
+        Hb_system_values = eigenvalues[idx]
+        Hb_system_vectors = eigenvectors[:, idx]
+
         phi = Hb_system_values - offset
         if np.nanmin(phi) < -1e-06:
             print("K not positive semi-definite.")
             return 
         U = Hb_system_vectors
         SHbS = np.dot(np.dot(S, Hb), S)
-        tmp = robjects.r['eigen'](SHbS)
-        SHbS_system_values = list(tmp)[0]
-        SHbS_system_vectors = list(tmp)[1]
+        eigenvalues, eigenvectors = np.linalg.eig(SHbS)
+
+        # Sort the eigenvalues in descending order, and sort the eigenvectors to match
+        idx = eigenvalues.argsort()[::-1]
+        SHbS_system_values = eigenvalues[idx]
+        SHbS_system_vectors = eigenvectors[:, idx]
+
         theta = SHbS_system_values[0:(n - p)] - offset
         Q = SHbS_system_vectors[:, 0:(n - p)]
     omega = crossprod(Q, y)
     omega_sq = omega * omega
     if method == 'ML':
-        #def f_ML(Lambda):
-        #    return n * np.log(np.nansum(omega_sq.reshape(-1) / (theta + Lambda))) + np.nansum(np.log(phi + Lambda))
-        #lambda_opt = fminbound(f_ML, bounds[0], bounds[1])
-        #objective = f_ML(lambda_opt)
         df = n
-        pd.DataFrame(np.array(bounds)).to_csv('bounds.csv')
-        pd.DataFrame(np.array([n])).to_csv('df.csv')
-        pd.DataFrame(phi).to_csv('phi.csv')
-        pd.DataFrame(theta).to_csv('theta.csv')
-        pd.DataFrame(omega_sq).to_csv('omega_sq.csv')
-        rcode = """
-        bounds <- c(read.csv('bounds.csv',row.names=1)[1,1], read.csv('bounds.csv',row.names=1)[2,1])
-        df <- read.csv('df.csv',row.names=1)[1,1]
-        phi <- read.csv('phi.csv',row.names=1)
-        theta <- read.csv('theta.csv',row.names=1)
-        omega_sq <- read.csv('omega_sq.csv',row.names=1)
-        f_ML <- function(Lambda) {
-            df * log(sum(omega.sq/(theta + lambda))) + sum(log(phi + lambda))
-        }
-        optimize(f_ML, interval = bounds)
-        """
-        tmp = robjects.r(rcode)
-        lambda_opt = list(tmp)[0]
-        objective = list(tmp)[1]
+        def f_ML(Lambda):
+            return n * np.log(np.nansum(omega_sq.reshape(-1) / (theta + Lambda))) + np.nansum(np.log(phi + Lambda))
+        lambda_opt = fminbound(f_ML, bounds[0], bounds[1])
+        objective = f_ML(lambda_opt)
         os.system('rm bounds.csv df.csv phi.csv theta.csv omega_sq.csv')
     else:
-        #def f_REML(Lambda):
-        #    return (n - p) * np.log(np.nansum(omega_sq.reshape(-1) / (theta + Lambda))) + np.nansum(np.log(theta + Lambda))
-        #lambda_opt = fminbound(f_REML, bounds[0], bounds[1])
-        #objective = f_REML(lambda_opt)
         df = n - p
-        pd.DataFrame(np.array(bounds)).to_csv('bounds.csv')
-        pd.DataFrame(np.array([n-p])).to_csv('df.csv')
-        pd.DataFrame(omega_sq).to_csv('omega_sq.csv')
-        pd.DataFrame(theta).to_csv('theta.csv')
-        rcode = """
-        bounds <- c(read.csv('bounds.csv',row.names=1)[1,1], read.csv('bounds.csv',row.names=1)[2,1])
-        df <- read.csv('df.csv',row.names=1)[1,1]
-        theta <- read.csv('theta.csv',row.names=1)
-        omega_sq <- read.csv('omega_sq.csv',row.names=1)
-        f_REML <- function(Lambda) {
-            df * log(sum(omega_sq/(theta + Lambda))) + sum(log(theta + Lambda))
-        }
-        optimize(f_REML, interval = bounds)
-        """
-        tmp = robjects.r(rcode)
-        lambda_opt = list(tmp)[0]
-        objective = list(tmp)[1]
-        os.system('rm bounds.csv df.csv omega_sq.csv theta.csv')
+        def f_REML(Lambda):
+            return (n - p) * np.log(np.nansum(omega_sq.reshape(-1) / (theta + Lambda))) + np.nansum(np.log(theta + Lambda))
+        lambda_opt = fminbound(f_REML, bounds[0], bounds[1])
+        objective = f_REML(lambda_opt)
     Vu_opt = np.nansum(omega_sq.reshape(-1) / (theta + lambda_opt)) / df
     Ve_opt = lambda_opt * Vu_opt
     Hinv = np.dot(U, (np.transpose(U) / (phi + lambda_opt).reshape(-1,1)))
