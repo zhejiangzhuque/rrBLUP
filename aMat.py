@@ -15,29 +15,30 @@ def add_mat_numpy(mark):
     relf = rel / sum_val  # Element-wise division
     return relf
 
-# Create fixed fake data as specified
-mark_numpy = np.array([
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # First individual with all 0s
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # Second individual with all 1s
-    [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],  # Third individual with all 2s
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]   # Fourth individual with all 0s
-])
 
-start_time = time.time()
-relf_numpy = add_mat_numpy(mark_numpy)
-print("Additive genetic relationship matrix:\n", relf_numpy)
-end_time = time.time()
-print("NumPy version execution time:", end_time - start_time, "seconds")
+if __name__ == '__main__':
+    # Create fixed fake data as specified
+    mark_numpy = np.array([
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # First individual with all 0s
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],  # Second individual with all 1s
+        [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],  # Third individual with all 2s
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # Fourth individual with all 0s
+    ])
 
+    start_time = time.time()
+    relf_numpy = add_mat_numpy(mark_numpy)
+    print("Additive genetic relationship matrix:\n", relf_numpy)
+    end_time = time.time()
+    print("NumPy version execution time:", end_time - start_time, "seconds")
 
-# Create large test data for NumPy version
-num_individuals = 20000
-num_markers = 32000
-# Each row alternates between 0, 1, and 2
-mark_numpy_large = np.tile(np.array([0, 1, 2]), (num_individuals, num_markers // 3 + 1))[:, :num_markers]
+    # Create large test data for NumPy version
+    num_individuals = 20000
+    num_markers = 32000
+    # Each row alternates between 0, 1, and 2
+    mark_numpy_large = np.tile(np.array([0, 1, 2]), (num_individuals, num_markers // 3 + 1))[:, :num_markers]
 
-# Time the execution with large data for NumPy version
-start_time = time.time()
-relf_numpy_large = add_mat_numpy(mark_numpy_large)
-end_time = time.time()
-print("NumPy version execution time:", end_time - start_time, "seconds")
+    # Time the execution with large data for NumPy version
+    start_time = time.time()
+    relf_numpy_large = add_mat_numpy(mark_numpy_large)
+    end_time = time.time()
+    print("NumPy version execution time:", end_time - start_time, "seconds")

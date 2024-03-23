@@ -5,6 +5,14 @@ from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 @jit
 def add_mat_jax(mark):
+    """
+        mark use 0,1,2 encoding
+    Args:
+        mark:  shape is n,m
+
+    Returns:
+    """
+
     p = jnp.mean(0.5 * mark, axis=0)
     t = jnp.ones((mark.shape[0], 1))
     m = mark - 2 * jnp.dot(t, p.reshape(1, -1))
@@ -61,7 +69,4 @@ def large_test():
     pca = PCA(n_components=3)  # Adjust n_components as needed
     principal_components = pca.fit_transform(relf_large)
 
-#small_test()
-
-large_test()
 
